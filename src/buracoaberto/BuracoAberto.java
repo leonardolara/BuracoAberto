@@ -135,6 +135,8 @@ public class BuracoAberto extends Application {
         root = new Group();
         mao = new ClasseMao[8];
         mesa = new ClasseMesa[2];
+        lblMesa1 = new Label();
+        lblMesa2 = new Label();
         //se o Bot pega a única carta do lixo, ela é memorizada pois não poderá ser descartada.
         botPegouDoLixo = new ClasseCarta();
         botPegouDoLixo.carta = 0;
@@ -165,8 +167,7 @@ public class BuracoAberto extends Application {
             mao[MONTE].cartas.get(k).zOrder=k+2; //vai de 2 a 105
             root.getChildren().add(mao[MONTE].cartas.get(k));
         }
-        lblMesa1 = new Label();
-        lblMesa2 = new Label();
+
         lblMesa1.setPrefSize(40,20);
         lblMesa2.setPrefSize(40,20);
         root.getChildren().add(lblMesa1);
@@ -224,8 +225,8 @@ public class BuracoAberto extends Application {
         lblMesa1.setLayoutX(230.0);
         lblMesa1.setLayoutY(386.0);
         mesa[1].setPosInit(283.0, 56.0, 10.0, 0.0);
-        lblMesa1.setLayoutX(230.0);
-        lblMesa1.setLayoutY(56.0);
+        lblMesa2.setLayoutX(230.0);
+        lblMesa2.setLayoutY(56.0);
         mesa[0].posMax = 1083.0;
         mesa[1].posMax = 1083.0;
     }
@@ -1694,8 +1695,8 @@ public class BuracoAberto extends Application {
     }
     
     private void atualizaPontos(){
-        //    Label1.Text = mesa(1).SomaPontos
-        //    Label2.Text = mesa(2).SomaPontos
+        lblMesa1.setText(Integer.toString(mesa[0].somaPontos()));
+        lblMesa2.setText(Integer.toString(mesa[1].somaPontos()));
     }
     
     private double calculaAngulo(int k, int n){
