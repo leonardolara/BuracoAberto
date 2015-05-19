@@ -6,7 +6,6 @@
 package buracoaberto;
 
 import static buracoaberto.ClasseCarta.TEMPO;
-import java.io.IOException;
 import javafx.animation.Interpolator;
 import javafx.animation.KeyFrame;
 import javafx.animation.ParallelTransition;
@@ -240,7 +239,7 @@ public class BuracoAberto extends Application {
         }
     };
     
-    private void inicializaCartas() throws IOException {
+    private void inicializaCartas(){
         //System.out.println("inicializaCartas()");
         int i;
         for (int cor=VERMELHO;cor<=AZUL;cor++){
