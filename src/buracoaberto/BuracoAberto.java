@@ -127,6 +127,7 @@ public class BuracoAberto extends Application {
     public Timeline masterListener;
     public final double screenCenterX = 648.0;
     public final double screenCenterY = 291.0;
+    public Label lblMesa1, lblMesa2;
     
     @Override
     public void start(Stage stage) throws Exception {
@@ -164,81 +165,18 @@ public class BuracoAberto extends Application {
             mao[MONTE].cartas.get(k).zOrder=k+2; //vai de 2 a 105
             root.getChildren().add(mao[MONTE].cartas.get(k));
         }
+        lblMesa1 = new Label();
+        lblMesa2 = new Label();
+        lblMesa1.setPrefSize(40,20);
+        lblMesa2.setPrefSize(40,20);
+        root.getChildren().add(lblMesa1);
+        root.getChildren().add(lblMesa2);
         scene = new Scene(root,1366,706,Color.FORESTGREEN);
         stage.setScene(scene);
         stage.show();
         jogo();
     }
-
-    EventHandler<ActionEvent> playCarta = new EventHandler<ActionEvent>() {
-        @Override
-        public void handle(ActionEvent arg0) {
-            CARTA.play();
-        }
-    };
-
-    EventHandler<ActionEvent> stopCarta = new EventHandler<ActionEvent>() {
-        @Override
-        public void handle(ActionEvent arg0) {
-            CARTA.stop();
-        }
-    };
-    
-    EventHandler<ActionEvent> playSuaVez = new EventHandler<ActionEvent>() {
-        @Override
-        public void handle(ActionEvent arg0) {
-            SUA_VEZ.play();
-        }
-    };
-    EventHandler<ActionEvent> stopSuaVez = new EventHandler<ActionEvent>() {
-        @Override
-        public void handle(ActionEvent arg0) {
-            SUA_VEZ.stop();
-        }
-    };
-
-    EventHandler<ActionEvent> playChoro = new EventHandler<ActionEvent>() {
-        @Override
-        public void handle(ActionEvent arg0) {
-            CHORO.play();
-        }
-    };
-
-    EventHandler<ActionEvent> playAplauso = new EventHandler<ActionEvent>() {
-        @Override
-        public void handle(ActionEvent arg0) {
-            APLAUSO.play();
-        }
-    };
-
-    EventHandler<ActionEvent> playLimpa = new EventHandler<ActionEvent>() {
-        @Override
-        public void handle(ActionEvent arg0) {
-            LIMPA.play();
-        }
-    };
-
-    EventHandler<ActionEvent> playSuja = new EventHandler<ActionEvent>() {
-        @Override
-        public void handle(ActionEvent arg0) {
-            SUJA.play();
-        }
-    };
-
-    EventHandler<ActionEvent> stopLimpa = new EventHandler<ActionEvent>() {
-        @Override
-        public void handle(ActionEvent arg0) {
-            LIMPA.stop();
-        }
-    };
-
-    EventHandler<ActionEvent> stopSuja = new EventHandler<ActionEvent>() {
-        @Override
-        public void handle(ActionEvent arg0) {
-            SUJA.stop();
-        }
-    };
-    
+   
     private void inicializaCartas(){
         //System.out.println("inicializaCartas()");
         int i;
@@ -283,7 +221,11 @@ public class BuracoAberto extends Application {
         mao[MORTO1].setPosInit(1083.0, -54.0, 1.0, 0.0);
         mao[MORTO2].setPosInit(1183.0, -54.0, 1.0, 0.0);
         mesa[0].setPosInit(283.0, 386.0, 10.0, 0.0);
+        lblMesa1.setLayoutX(230.0);
+        lblMesa1.setLayoutY(386.0);
         mesa[1].setPosInit(283.0, 56.0, 10.0, 0.0);
+        lblMesa1.setLayoutX(230.0);
+        lblMesa1.setLayoutY(56.0);
         mesa[0].posMax = 1083.0;
         mesa[1].posMax = 1083.0;
     }
@@ -322,6 +264,8 @@ public class BuracoAberto extends Application {
                             anim2.play();
                             lixo.setStyle("-fx-border-color: #AAAAAA;");
                             mesadejogos.setStyle("-fx-border-color: #AAAAAA;");
+                            lblMesa1.setStyle("-fx-border-color: #AAAAAA;");
+                            lblMesa2.setStyle("-fx-border-color: #AAAAAA;");
                         }
                     });
                     anim.play();
@@ -341,6 +285,8 @@ public class BuracoAberto extends Application {
         for (int k=mao[MONTE].cartas.size()-1;k>=0;k--){
             mao[MONTE].cartas.get(k).toFront();
         }
+        lblMesa1.toFront();
+        lblMesa2.toFront();
         updateZOrder();
         
         play(0); //põe o monte na mesa, dsitribui as cartas e joga a primeira no lixo.
@@ -366,7 +312,6 @@ public class BuracoAberto extends Application {
                 else if (((oldvez==-1)||(oldvez==3.3)) && (vez==0)){
                     //vez do jogador 1 (responde a eventos de mouse)
                     oldvez = 0;
-                    //SUA_VEZ.play();
                 } 
                 else if ((oldvez==0) && (vez==1.1)){
                     //passou a vez para o jogador 2 comprar
@@ -1178,15 +1123,6 @@ public class BuracoAberto extends Application {
                                                 iMao.anim.getChildren().add(descida);
                                                 serviu = true;
                                                 atualizaPontos();
-                                                if (mao[jog].cartas.isEmpty()){
-                                                    //se acabaram as cartas da mão
-                                                    botsplay = new SequentialTransition(botsplay, animacao(ms));
-                                                    SequentialTransition tempseq = verificaSeAcabou(jog,ms);
-                                                    if (tempseq!=null) {
-                                                        botsplay = new SequentialTransition(botsplay, tempseq);
-                                                    }
-                                                    if (jogo_acabou) return botsplay; //se acabou o jogo, retorna, senão faz mais um loop
-                                                }
                                             }
                                             if (serviu) break;
                                         }
@@ -1258,15 +1194,6 @@ public class BuracoAberto extends Application {
                                             mesa[ms].maos.get(m).anim.getChildren().add(descida);
                                             serviu = true;
                                             atualizaPontos();
-                                            if (mao[jog].cartas.isEmpty()){
-                                                //se acabaram as cartas da mão
-                                                botsplay = new SequentialTransition(botsplay, animacao(ms));
-                                                SequentialTransition tempseq = verificaSeAcabou(jog,ms);
-                                                if (tempseq!=null) {
-                                                    botsplay = new SequentialTransition(botsplay, tempseq);
-                                                }
-                                                if (jogo_acabou) return botsplay; //se acabou o jogo, retorna, senão faz mais um loop
-                                            }
                                         }
                                     }
                                 }
@@ -1289,15 +1216,6 @@ public class BuracoAberto extends Application {
                 if (descida!=null){
                     System.out.println("[Jogador " + (jog+1) + "] Olha, ficou só um jogo na minha mão, desci e bati.");
                     mesa[ms].maos.get(mesa[ms].maos.size()-1).anim.getChildren().add(descida);
-                    if (mao[jog].cartas.isEmpty()){
-                        //se acabaram as cartas da mão
-                        botsplay = new SequentialTransition(botsplay, animacao(ms));
-                        SequentialTransition tempseq = verificaSeAcabou(jog,ms);
-                        if (tempseq!=null) {
-                            botsplay = new SequentialTransition(botsplay, tempseq);
-                        }
-                        if (jogo_acabou) return botsplay; //se acabou o jogo, retorna, senão faz mais um loop
-                    }
                     fazdenovo = true;
                 }
             }
@@ -1332,15 +1250,6 @@ public class BuracoAberto extends Application {
                                     if (descida!=null){
                                         System.out.println("[Jogador " + (jog+1) + "] Desci um jogo de " +  this.naipes[np - 1] + ".");
                                         mesa[ms].maos.get(mesa[ms].maos.size()-1).anim.getChildren().add(descida);
-                                        if (mao[jog].cartas.isEmpty()){
-                                            //se acabaram as cartas da mão
-                                            botsplay = new SequentialTransition(botsplay, animacao(ms));
-                                            SequentialTransition tempseq = verificaSeAcabou(jog,ms);
-                                            if (tempseq!=null) {
-                                                botsplay = new SequentialTransition(botsplay, tempseq);
-                                            }
-                                            if (jogo_acabou) return botsplay; //se acabou o jogo, retorna, senão faz mais um loop
-                                        }
                                         fazdenovo = true;
                                     }
                                 }
@@ -1360,6 +1269,10 @@ public class BuracoAberto extends Application {
                 cMao.anim = new ParallelTransition();
             }
         }
+        SequentialTransition tempseq = verificaSeAcabou(jog,ms);
+        if (tempseq!=null) {
+            botsplay = new SequentialTransition(botsplay, tempseq);
+        }
         return botsplay;
     }
     
@@ -1368,7 +1281,7 @@ public class BuracoAberto extends Application {
         //Descartando...
         //////////////////////////
         //boolean descartou = false, serve_adv;
-        int k = -1, ms = 1, tentativas = 0;
+        int k, ms = 1, tentativas = 0;
         SequentialTransition tempseq;
         SequentialTransition botsplay = new SequentialTransition(new PauseTransition(Duration.millis(1)));
         if (jog==JOG3) ms=0; //jogador 3 é seu parceiro, desce na mesma mesa que você
@@ -1391,83 +1304,11 @@ public class BuracoAberto extends Application {
                 mao_temp.cartas.add(mao[jog].cartas.get(k));
             }
         }
-        /*while (!descartou&&tentativas<mao[jog].cartas.size()*3) {
-            k = -1;
-            //tenta escolher uma carta repetida da mão
-            for (int ct1 = 0; ct1 < mao[jog].cartas.size(); ct1++){
-                for (int ct2 = 0; ct2 < mao[jog].cartas.size(); ct2++){
-                    if (ct1 != ct2){
-                        if ((mao[jog].cartas.get(ct1).carta == mao[jog].cartas.get(ct2).carta)
-                            && (mao[jog].cartas.get(ct1).naipe == mao[jog].cartas.get(ct2).naipe) //se a carta tem repetida e não é coringa
-                            && (mao[jog].cartas.get(ct1).carta != 2)){
-                            if (!mao[jog].cartas.get(ct1).selecionada){
-                                k = ct1;
-                                mao[jog].cartas.get(ct1).selecionada = true;
-                                mao[jog].cartas.get(ct2).selecionada = true;
-                            }
-                        }
-                    }
-                }
-            }
-            if (k!=-1) {
-                serve_adv = serveProAdversario(jog, k);
-                if (!serve_adv){
-                    if (!((mao[jog].cartas.get(k).carta==botPegouDoLixo.carta)&&(mao[jog].cartas.get(k).naipe==botPegouDoLixo.naipe))){
-                        descartou = true;
-                        System.out.println("[Jogador " + (jog+1) + "] Descartei essa carta repetida que não serve pra eles.");
-                    }
-                }
-            }
-            //tenta escolher uma carta que já tenha na mesa
-            for (int ct1 = 0; ct1 < mao[jog].cartas.size(); ct1++){
-                for (int m = 0; m < mesa[ms].maos.size(); m++){
-                    for (int ct2 = 0; ct2 < mesa[ms].maos.get(m).cartas.size(); ct2++){
-                        if ((mao[jog].cartas.get(ct1).carta == mesa[ms].maos.get(m).cartas.get(ct2).carta)
-                            && (mao[jog].cartas.get(ct1).naipe == mesa[ms].maos.get(m).cartas.get(ct2).naipe) //se a carta já está na mesa e não é coringa
-                            && (mao[jog].cartas.get(ct1).carta != 2)){
-                            if (!mao[jog].cartas.get(ct1).selecionada){
-                                k = ct1;
-                                mao[jog].cartas.get(ct1).selecionada = true;
-                            }
-                        }
-                    }
-                }
-            }
-            if (k!=-1) {
-                serve_adv = serveProAdversario(jog, k);
-                if (!serve_adv){
-                    if (!((mao[jog].cartas.get(k).carta==botPegouDoLixo.carta)&&(mao[jog].cartas.get(k).naipe==botPegouDoLixo.naipe))){
-                        descartou = true;
-                        System.out.println("[Jogador " + (jog+1) + "] Descartei ess" + cartas[mao[jog].cartas.get(k).carta - 1] + " de " + naipes[mao[jog].cartas.get(k).naipe - 1] + " que já temos na mesa e que não serve pra eles.");
-                    }
-                }
-            }
-            if (!descartou){
-                k = (int)Math.floor(Math.random()*mao[jog].cartas.size());
-                if ((mao[jog].cartas.get(k).carta==botPegouDoLixo.carta)&&(mao[jog].cartas.get(k).naipe==botPegouDoLixo.naipe)) {
-                    //não pode descartar a mesma carta que estava sozinha no lixo, passa pra próxima carta
-                    System.out.println("[Jogador " + (jog+1) + "] Não posso descartar a carta que peguei do lixo.");
-                    k++;
-                    if (k>=mao[jog].cartas.size()) k=0; //proteção de null pointer
-                }
-                tentativas++;
-                //verifica se a carta escolhida não serve para o adversário
-                if (mao[jog].cartas.get(k).carta==2){
-                    serve_adv=true;
-                    System.out.println("[Jogador " + (jog+1) + "] Opa! Não quero descartar coringa.");
-                }
-                else {
-                    serve_adv = serveProAdversario(jog, k);
-                    if (serve_adv) System.out.println("[Jogador " + (jog+1) + "] Opa! Ess" + cartas[mao[jog].cartas.get(k).carta - 1] + " de " + naipes[mao[jog].cartas.get(k).naipe - 1] + " serve pra eles.");
-                }
-                descartou = !serve_adv;
-            }
-        }
-        */
         if (mao_temp.cartas.isEmpty()) {
             k = (int)Math.floor(Math.random()*mao[jog].cartas.size());
             if (k<0) k=0;
             if (k>mao[jog].cartas.size()-1) k = mao[jog].cartas.size()-1;
+            tentativas++;
         } else {
             k = (int)Math.floor(Math.random()*mao_temp.cartas.size());
             if (k<0) k=0;
@@ -1964,7 +1805,6 @@ public class BuracoAberto extends Application {
                 else if (mao_temp.semireal()) pontos -= 500;
                 else if (mao_temp.limpa()) pontos -= 200;
                 else if (mao_temp.suja()) pontos -= 100;
-                pontos = mao_temp.somaPontos();
                 mao_temp.cartas.add(mao[jog].cartas.get(k));
                 if (mao_temp.jogoValido().valido){ //...e serve para o adversário...
                     if (mao_temp.real()) pontos += 1000;
@@ -2019,4 +1859,73 @@ public class BuracoAberto extends Application {
         } // adiciona as animações na variável de retorno
         return botsplay; //se acabou o jogo, retorna, senão faz mais um loop
     }
+
+    EventHandler<ActionEvent> playCarta = new EventHandler<ActionEvent>() {
+        @Override
+        public void handle(ActionEvent arg0) {
+            CARTA.play();
+        }
+    };
+
+    EventHandler<ActionEvent> stopCarta = new EventHandler<ActionEvent>() {
+        @Override
+        public void handle(ActionEvent arg0) {
+            CARTA.stop();
+        }
+    };
+    
+    EventHandler<ActionEvent> playSuaVez = new EventHandler<ActionEvent>() {
+        @Override
+        public void handle(ActionEvent arg0) {
+            SUA_VEZ.play();
+        }
+    };
+    EventHandler<ActionEvent> stopSuaVez = new EventHandler<ActionEvent>() {
+        @Override
+        public void handle(ActionEvent arg0) {
+            SUA_VEZ.stop();
+        }
+    };
+
+    EventHandler<ActionEvent> playChoro = new EventHandler<ActionEvent>() {
+        @Override
+        public void handle(ActionEvent arg0) {
+            CHORO.play();
+        }
+    };
+
+    EventHandler<ActionEvent> playAplauso = new EventHandler<ActionEvent>() {
+        @Override
+        public void handle(ActionEvent arg0) {
+            APLAUSO.play();
+        }
+    };
+
+    EventHandler<ActionEvent> playLimpa = new EventHandler<ActionEvent>() {
+        @Override
+        public void handle(ActionEvent arg0) {
+            LIMPA.play();
+        }
+    };
+
+    EventHandler<ActionEvent> playSuja = new EventHandler<ActionEvent>() {
+        @Override
+        public void handle(ActionEvent arg0) {
+            SUJA.play();
+        }
+    };
+
+    EventHandler<ActionEvent> stopLimpa = new EventHandler<ActionEvent>() {
+        @Override
+        public void handle(ActionEvent arg0) {
+            LIMPA.stop();
+        }
+    };
+
+    EventHandler<ActionEvent> stopSuja = new EventHandler<ActionEvent>() {
+        @Override
+        public void handle(ActionEvent arg0) {
+            SUJA.stop();
+        }
+    };
 }
