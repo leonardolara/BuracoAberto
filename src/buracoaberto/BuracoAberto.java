@@ -26,6 +26,7 @@ import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.Region;
 import javafx.scene.media.AudioClip;
 import javafx.scene.paint.Color;
+import javafx.stage.Screen;
 import javafx.stage.Stage;
 import javafx.util.Duration;
 
@@ -94,9 +95,6 @@ public class BuracoAberto extends Application {
     public static final int BATIDA = 100;
     public static final int PEGOUMORTO = 100;
 
-    public static final int X_Carta = 70;
-    public static final int Y_Carta = 100;
-
     public ClasseCarta[] baralho = new ClasseCarta[104];
     public ClasseMao[] mao;
     public ClasseMesa[] mesa;
@@ -110,8 +108,6 @@ public class BuracoAberto extends Application {
     public String[] cores = {"Vermelho", "Azul"};
     public String[] cartas = {"e ás", "e dois", "e três", "e quatro", "e cinco", "e seis", "e sete", "e oito", "e nove", "e dez", "e valete", "a dama", "e rei"};
     public String[] nomes = {"1e", "2e", "3e", "4e", "5e", "6e", "7e", "8e", "9e", "10e", "11e", "12e", "13e", "1c", "2c", "3c", "4c", "5c", "6c", "7c", "8c", "9c", "10c", "11c", "12c", "13c", "1p", "2p", "3p", "4p", "5p", "6p", "7p", "8p", "9p", "10p", "11p", "12p", "13p", "1o", "2o", "3o", "4o", "5o", "6o", "7o", "8o", "9o", "10o", "11o", "12o", "13o"};
-    public static final Image vermelho = new Image(BuracoAberto.class.getResourceAsStream("/buracoaberto/vrm.png"),70.0,100.0,false,true);
-    public static final Image azul = new Image(BuracoAberto.class.getResourceAsStream("/buracoaberto/azl.png"),70.0,100.0,false,true);
     public static Group root;
     public Scene scene;
     public final Region lixo = new Region(), mesadejogos = new Region();
@@ -125,10 +121,12 @@ public class BuracoAberto extends Application {
     private static final AudioClip LIMPA = new AudioClip(BuracoAberto.class.getResource("/buracoaberto/limpa.wav").toString());
     private static final AudioClip SUJA = new AudioClip(BuracoAberto.class.getResource("/buracoaberto/suja.wav").toString());
     public Timeline masterListener;
-    public final double screenCenterX = 648.0;
-    public final double screenCenterY = 291.0;
+    public double screenWidth, screenHeight;
+    public double screenCenterX;
+    public double screenCenterY;
     public Label lblMesa1, lblMesa2;
-    
+    public boolean smallRes = false;
+     
     @Override
     public void start(Stage stage) throws Exception {
         //System.out.println("start()");
@@ -142,44 +140,24 @@ public class BuracoAberto extends Application {
         botPegouDoLixo.carta = 0;
         botPegouDoLixo.naipe = 0;
         inicializaCartas();
+        inicializaControles();
         jogo_acabou = false;
-        lixo.setLayoutX(683);
-        lixo.setLayoutY(276);
-        lixo.setPrefSize(400,100);
-        lixo.setOnMouseClicked(new EventHandler<MouseEvent>(){
-            @Override public void handle(MouseEvent event) {
-                event.consume();
-                lixo_click();
-            }
-        });
-        root.getChildren().add(lixo); //lixo zOrder 0
-        mesadejogos.setLayoutX(283);
-        mesadejogos.setLayoutY(386);
-        mesadejogos.setPrefSize(800,210);
-        mesadejogos.setOnMouseClicked(new EventHandler<MouseEvent>(){
-            @Override public void handle(MouseEvent event) {
-                event.consume();
-                mesadejogos_click();
-            }
-        });
-        root.getChildren().add(mesadejogos); //mesa zOrder 1
-        for (int k=0;k<mao[MONTE].cartas.size();k++){
-            mao[MONTE].cartas.get(k).zOrder=k+2; //vai de 2 a 105
-            root.getChildren().add(mao[MONTE].cartas.get(k));
+        if (smallRes) {
+            screenWidth = 240;
+            screenHeight = 320;
+        } else {
+            screenWidth = Screen.getPrimary().getVisualBounds().getWidth();
+            screenHeight = Screen.getPrimary().getVisualBounds().getHeight();
         }
-
-        lblMesa1.setPrefSize(40,20);
-        lblMesa2.setPrefSize(40,20);
-        root.getChildren().add(lblMesa1);
-        root.getChildren().add(lblMesa2);
-        scene = new Scene(root,1366,706,Color.FORESTGREEN);
+        scene = new Scene(root,screenWidth,screenHeight,Color.FORESTGREEN);
         stage.setScene(scene);
         stage.show();
         jogo();
     }
    
     private void inicializaCartas(){
-        //System.out.println("inicializaCartas()");
+        Image vermelho = new Image(BuracoAberto.class.getResourceAsStream("/buracoaberto/vrm.png"),larguraCarta(),alturaCarta(),false,true);
+        Image azul = new Image(BuracoAberto.class.getResourceAsStream("/buracoaberto/azl.png"),larguraCarta(),alturaCarta(),false,true);
         int i;
         for (int cor=VERMELHO;cor<=AZUL;cor++){
             for (int naipe=ESPADAS;naipe<=OUROS;naipe++){
@@ -192,10 +170,9 @@ public class BuracoAberto extends Application {
                     baralho[i].carta = ct;
                     baralho[i].naipe = naipe;
                     baralho[i].cor = cor;
-                    //baralho[i].local = MONTE;
                     baralho[i].selecionada = false;
                     baralho[i].zOrder = i+2;
-                    baralho[i].frente = new Image(getClass().getResourceAsStream("/buracoaberto/"+nomes[i%52]+".png"),70.0,100.0,false,true);
+                    baralho[i].frente = new Image(getClass().getResourceAsStream("/buracoaberto/"+nomes[i%52]+".png"),larguraCarta(),alturaCarta(),false,true);
                     if (cor==1) baralho[i].verso = vermelho;
                     else baralho[i].verso = azul;
                     baralho[i].setImage(baralho[i].verso);
@@ -213,22 +190,38 @@ public class BuracoAberto extends Application {
         for (i=0;i<MAXCARTAS;i++){
             mao[MONTE].cartas.add(baralho[i]);
         }
-        mao[JOG1].setPosInit(383.0, 606.0, 15.0, 0.0);
-        mao[JOG2].setPosInit(1281.0, 150.0, 0.0, 15.0);
-        mao[JOG3].setPosInit(383.0, -54.0, 15.0, 0.0);
-        mao[JOG4].setPosInit(15.0, 150.0, 0.0, 15.0);
-        mao[MONTE].setPosInit(283.0, 276.0, 7.0, 0.0);
-        mao[LIXO].setPosInit(683.0, 276.0, 15.0, 0.0);
-        mao[MORTO1].setPosInit(1083.0, -54.0, 1.0, 0.0);
-        mao[MORTO2].setPosInit(1183.0, -54.0, 1.0, 0.0);
-        mesa[0].setPosInit(283.0, 386.0, 10.0, 0.0);
-        lblMesa1.setLayoutX(230.0);
-        lblMesa1.setLayoutY(386.0);
-        mesa[1].setPosInit(283.0, 56.0, 10.0, 0.0);
-        lblMesa2.setLayoutX(230.0);
-        lblMesa2.setLayoutY(56.0);
-        mesa[0].posMax = 1083.0;
-        mesa[1].posMax = 1083.0;
+        if (smallRes) {
+            mao[JOG1].setPosInit(10.0, 285.0, 8.0, 0.0);
+            mao[JOG2].setPosInit(243.0, 7.0, 0.0, 8.0);
+            mao[JOG3].setPosInit(10.0, -45.0, 8.0, 0.0);
+            mao[JOG4].setPosInit(-36.0, 10, 0.0, 8.0);
+            mao[MONTE].setPosInit(10.0, 120.0, 0.0, 0.0);
+            mao[LIXO].setPosInit(50.0, 120.0, 8.0, 0.0);
+            mao[MORTO1].setPosInit(-30.0, -40.0, 0.0, 0.0);
+            mao[MORTO2].setPosInit(-25.0, -45.0, 0.0, 0.0);
+            mesa[0].setPosInit(10.0, 175.0, 4.0, 0.0);
+            mesa[1].setPosInit(10.0, 10.0, 4.0, 0.0);
+            mesa[0].posMax = 229.0;
+            mesa[1].posMax = 229.0;
+            screenCenterX = 103.0;
+            screenCenterY = 123.0;
+        } else {
+            mao[JOG1].setPosInit(383.0, 606.0, 15.0, 0.0);
+            mao[JOG2].setPosInit(1281.0, 150.0, 0.0, 15.0);
+            mao[JOG3].setPosInit(383.0, -54.0, 15.0, 0.0);
+            mao[JOG4].setPosInit(15.0, 150.0, 0.0, 15.0);
+            mao[MONTE].setPosInit(283.0, 276.0, 7.0, 0.0);
+            mao[LIXO].setPosInit(683.0, 276.0, 15.0, 0.0);
+            mao[MORTO1].setPosInit(1083.0, -54.0, 1.0, 0.0);
+            mao[MORTO2].setPosInit(1183.0, -54.0, 1.0, 0.0);
+            mesa[0].setPosInit(283.0, 386.0, 10.0, 0.0);
+            mesa[1].setPosInit(283.0, 56.0, 10.0, 0.0);
+            mesa[0].posMax = 1083.0;
+            mesa[1].posMax = 1083.0;
+            screenCenterX = 648.0;
+            screenCenterY = 291.0;
+        }
+
     }
     
     private void play(int k){
@@ -236,8 +229,8 @@ public class BuracoAberto extends Application {
         pausa.setOnFinished(new EventHandler<ActionEvent>() {
             @Override
             public void handle(ActionEvent e) {
-                mao[MONTE].cartas.get(k).posX = mao[MONTE].posInitX+mao[MONTE].deltaX*k;
-                mao[MONTE].cartas.get(k).posY = mao[MONTE].posInitY+mao[MONTE].deltaY*k;
+                mao[MONTE].cartas.get(k).posX = Math.rint(mao[MONTE].posInitX+mao[MONTE].deltaX*k);
+                mao[MONTE].cartas.get(k).posY = Math.rint(mao[MONTE].posInitY+mao[MONTE].deltaY*k);
                 arrumaCarta(mao[MONTE].cartas.get(k),true,Duration.millis(200),true).play();
                 if (DEBUGMODE) mao[MONTE].cartas.get(k).fxViraPraCima().play();
                 if (k<103){
@@ -263,6 +256,7 @@ public class BuracoAberto extends Application {
                                 }
                             });
                             anim2.play();
+                            //só aparecem os contornos depois de distribuir as cartas
                             lixo.setStyle("-fx-border-color: #AAAAAA;");
                             mesadejogos.setStyle("-fx-border-color: #AAAAAA;");
                             lblMesa1.setStyle("-fx-border-color: #AAAAAA;");
@@ -651,8 +645,8 @@ public class BuracoAberto extends Application {
             
         ctOrigem.selecionada=false; //ISSO É IMPORTANTE
         //ctOrigem.local = destino; //ISSO NÃO É IMPORTANTE
-        ctOrigem.posX = maoDestino.getNextPos("X"); //isso é pro morto e pro lixo
-        ctOrigem.posY = maoDestino.getNextPos("Y"); //isso também
+        ctOrigem.posX = Math.rint(maoDestino.getNextPos("X")); //isso é pro morto e pro lixo
+        ctOrigem.posY = Math.rint(maoDestino.getNextPos("Y")); //isso também
         
         //Define o angulo que a carta deverá ficar
         ctOrigem.defineAngulo(destino);
@@ -699,21 +693,26 @@ public class BuracoAberto extends Application {
                 //Define a nova posição de todas as cartas da mão, abrindo espaço para a carta que vai entrar
                 
                 if (destino==JOG3){
-                    maoDestino.cartas.get(k).posX = screenCenterX - maoDestino.deltaX * (k - ((double)tamanho/2));
-                    maoDestino.cartas.get(k).posY = maoDestino.posInitY;
+                    maoDestino.cartas.get(k).posX = Math.rint(screenCenterX - maoDestino.deltaX * (k - ((double)tamanho/2)));
+                    maoDestino.cartas.get(k).posY = Math.rint(maoDestino.posInitY);
                 }
                 else if (destino==JOG2){
-                    maoDestino.cartas.get(k).posX = maoDestino.posInitX;
-                    maoDestino.cartas.get(k).posY = screenCenterY - maoDestino.deltaY * (k - ((double)tamanho/2));
+                    maoDestino.cartas.get(k).posX = Math.rint(maoDestino.posInitX);
+                    maoDestino.cartas.get(k).posY = Math.rint(screenCenterY - maoDestino.deltaY * (k - ((double)tamanho/2)));
                 }
                 else if (destino==JOG4){
-                    maoDestino.cartas.get(k).posX = maoDestino.posInitX;
-                    maoDestino.cartas.get(k).posY = screenCenterY + maoDestino.deltaY * (k - ((double)tamanho/2));
+                    maoDestino.cartas.get(k).posX = Math.rint(maoDestino.posInitX);
+                    maoDestino.cartas.get(k).posY = Math.rint(screenCenterY + maoDestino.deltaY * (k - ((double)tamanho/2)));
                 }
                 else if (destino==JOG1){
-                    maoDestino.cartas.get(k).posX = screenCenterX + calculaX(k,tamanho);
-                    maoDestino.cartas.get(k).posY = maoDestino.posInitY - calculaY(k,tamanho);
-                    maoDestino.cartas.get(k).angulo = calculaAngulo(k,tamanho)*180.0/Math.PI;
+                    if (smallRes){
+                        maoDestino.cartas.get(k).posX = Math.rint(screenCenterX + maoDestino.deltaX * (k - ((double)tamanho/2)));
+                        maoDestino.cartas.get(k).posY = Math.rint(maoDestino.posInitY);
+                    } else {
+                        maoDestino.cartas.get(k).posX = Math.rint(screenCenterX + calculaX(k,tamanho));
+                        maoDestino.cartas.get(k).posY = Math.rint(maoDestino.posInitY - calculaY(k,tamanho));
+                        maoDestino.cartas.get(k).angulo = calculaAngulo(k,tamanho)*180.0/Math.PI;
+                    }
                 }
                 pt.getChildren().add(
                     arrumaCarta(maoDestino.cartas.get(k),true,tempo)    //e todas se movendo para o lugar correto
@@ -739,21 +738,26 @@ public class BuracoAberto extends Application {
             if (origem!=MONTE){
                 for (int k=0;k<tamanho;k++){
                     if (origem==JOG3){
-                        mao[origem].cartas.get(k).posX = screenCenterX - mao[origem].deltaX * (k - ((double)tamanho/2));
-                        mao[origem].cartas.get(k).posY = mao[origem].posInitY;
+                        mao[origem].cartas.get(k).posX = Math.rint(screenCenterX - mao[origem].deltaX * (k - ((double)tamanho/2)));
+                        mao[origem].cartas.get(k).posY = Math.rint(mao[origem].posInitY);
                     }
                     else if (origem==JOG2){
-                        mao[origem].cartas.get(k).posX = mao[origem].posInitX;
-                        mao[origem].cartas.get(k).posY = screenCenterY - mao[origem].deltaY * (k - ((double)tamanho/2));
+                        mao[origem].cartas.get(k).posX = Math.rint(mao[origem].posInitX);
+                        mao[origem].cartas.get(k).posY = Math.rint(screenCenterY - mao[origem].deltaY * (k - ((double)tamanho/2)));
                     }
                     else if (origem==JOG4){
-                        mao[origem].cartas.get(k).posX = mao[origem].posInitX;
-                        mao[origem].cartas.get(k).posY = screenCenterY + mao[origem].deltaY * (k - ((double)tamanho/2));
+                        mao[origem].cartas.get(k).posX = Math.rint(mao[origem].posInitX);
+                        mao[origem].cartas.get(k).posY = Math.rint(screenCenterY + mao[origem].deltaY * (k - ((double)tamanho/2)));
                     }
                     else if (origem==JOG1){
-                        mao[origem].cartas.get(k).posX = screenCenterX + calculaX(k,tamanho);
-                        mao[origem].cartas.get(k).posY = mao[origem].posInitY - calculaY(k,tamanho);
-                        mao[origem].cartas.get(k).angulo = calculaAngulo(k,tamanho)*180.0/Math.PI;
+                        if (smallRes) {
+                            mao[origem].cartas.get(k).posX = Math.rint(screenCenterX + mao[origem].deltaX * (k - ((double)tamanho/2)));
+                            mao[origem].cartas.get(k).posY = Math.rint(mao[origem].posInitY);
+                        } else {
+                            mao[origem].cartas.get(k).posX = Math.rint(screenCenterX + calculaX(k,tamanho));
+                            mao[origem].cartas.get(k).posY = Math.rint(mao[origem].posInitY - calculaY(k,tamanho));
+                            mao[origem].cartas.get(k).angulo = calculaAngulo(k,tamanho)*180.0/Math.PI;                            
+                        }
                     }
                     pt.getChildren().add(arrumaCarta(mao[origem].cartas.get(k),true,tempo));
                 }
@@ -812,21 +816,26 @@ public class BuracoAberto extends Application {
             int tamanho = mao[origem].cartas.size();
             for (int k=0;k<tamanho;k++){
                 if (origem==JOG3){
-                    mao[origem].cartas.get(k).posX = screenCenterX - mao[origem].deltaX * (k - ((double)tamanho/2));
-                    mao[origem].cartas.get(k).posY = mao[origem].posInitY;
+                    mao[origem].cartas.get(k).posX = Math.rint(screenCenterX - mao[origem].deltaX * (k - ((double)tamanho/2)));
+                    mao[origem].cartas.get(k).posY = Math.rint(mao[origem].posInitY);
                 }
                 else if (origem==JOG2){
-                    mao[origem].cartas.get(k).posX = mao[origem].posInitX;
-                    mao[origem].cartas.get(k).posY = screenCenterY - mao[origem].deltaY * (k - ((double)tamanho/2));
+                    mao[origem].cartas.get(k).posX = Math.rint(mao[origem].posInitX);
+                    mao[origem].cartas.get(k).posY = Math.rint(screenCenterY - mao[origem].deltaY * (k - ((double)tamanho/2)));
                 }
                 else if (origem==JOG4){
-                    mao[origem].cartas.get(k).posX = mao[origem].posInitX;
-                    mao[origem].cartas.get(k).posY = screenCenterY + mao[origem].deltaY * (k - ((double)tamanho/2));
+                    mao[origem].cartas.get(k).posX = Math.rint(mao[origem].posInitX);
+                    mao[origem].cartas.get(k).posY = Math.rint(screenCenterY + mao[origem].deltaY * (k - ((double)tamanho/2)));
                 }
                 else if (origem==JOG1){
-                    mao[origem].cartas.get(k).posX = screenCenterX + calculaX(k,tamanho);
-                    mao[origem].cartas.get(k).posY = mao[origem].posInitY - calculaY(k,tamanho);
-                    mao[origem].cartas.get(k).angulo = calculaAngulo(k,tamanho)*180.0/Math.PI;
+                    if (smallRes) {
+                        mao[origem].cartas.get(k).posX = Math.rint(screenCenterX + mao[origem].deltaX * (k - ((double)tamanho/2)));
+                        mao[origem].cartas.get(k).posY = Math.rint(mao[origem].posInitY);
+                    } else {
+                        mao[origem].cartas.get(k).posX = Math.rint(screenCenterX + calculaX(k,tamanho));
+                        mao[origem].cartas.get(k).posY = Math.rint(mao[origem].posInitY - calculaY(k,tamanho));
+                        mao[origem].cartas.get(k).angulo = calculaAngulo(k,tamanho)*180.0/Math.PI;                        
+                    }
                 }
                 pt.getChildren().add(arrumaCarta(mao[origem].cartas.get(k),true,tempo));
             }
@@ -840,12 +849,12 @@ public class BuracoAberto extends Application {
                 }
             }
 
-            pos = mesa[ms].posMao(mesa[ms].maos.indexOf(maoDestino));
+            pos = mesa[ms].posMao(mesa[ms].maos.indexOf(maoDestino),larguraCarta());
             maoDestino.setPosInit(pos.getX(), pos.getY(), 10.0, 0.0);
             for (int k=0;k<maoDestino.cartas.size();k++) {
                 //Define a posição das cartas do jogo para abrir espaço para a carta que vai entrar
-                maoDestino.cartas.get(k).posX = maoDestino.posInitX + maoDestino.deltaX * k;
-                maoDestino.cartas.get(k).posY = maoDestino.posInitY;
+                maoDestino.cartas.get(k).posX = Math.rint(maoDestino.posInitX + maoDestino.deltaX * k);
+                maoDestino.cartas.get(k).posY = Math.rint(maoDestino.posInitY);
                 pt.getChildren().add(
                     arrumaCarta(maoDestino.cartas.get(k),true,tempo)    //e todas se movendo para o lugar correto
                 );
@@ -862,14 +871,14 @@ public class BuracoAberto extends Application {
             //move as mãos da direita para dar espaço
             if ((mao_mesa + 1) < mesa[ms].maos.size()){
                 for (int mm=mao_mesa+1;mm<mesa[ms].maos.size();mm++){
-                    pos = mesa[ms].posMao(mm);
-                    mesa[ms].maos.get(mm).setPosInit(pos.getX(), pos.getY(), 10, 0);
+                    pos = mesa[ms].posMao(mm,larguraCarta());
+                    mesa[ms].maos.get(mm).setPosInit(pos.getX(), pos.getY(), smallRes?5:10, 0);
                     for (int crt=0; crt < mesa[ms].maos.get(mm).cartas.size(); crt++) {
-                        mesa[ms].maos.get(mm).cartas.get(crt).posX = mesa[ms].maos.get(mm).posInitX + mesa[ms].maos.get(mm).deltaX * crt;
-                        mesa[ms].maos.get(mm).cartas.get(crt).posY = mesa[ms].maos.get(mm).posInitY + mesa[ms].maos.get(mm).deltaY * crt;
+                        mesa[ms].maos.get(mm).cartas.get(crt).posX = Math.rint(mesa[ms].maos.get(mm).posInitX + mesa[ms].maos.get(mm).deltaX * crt);
+                        mesa[ms].maos.get(mm).cartas.get(crt).posY = Math.rint(mesa[ms].maos.get(mm).posInitY + mesa[ms].maos.get(mm).deltaY * crt);
                         pt.getChildren().add(arrumaCarta(mesa[ms].maos.get(mm).cartas.get(crt),true));
                     }
-                    pt.getChildren().add(mesa[ms].maos.get(mm).fxMoveTarja());
+                    pt.getChildren().add(mesa[ms].maos.get(mm).fxMoveTarja(larguraCarta()));
                 }
             } 
             
@@ -896,8 +905,8 @@ public class BuracoAberto extends Application {
                 ); //faz a animação da carta virando pra baixo
             }
             
-            maoDestino.cartas.get(maoDestino.cartas.size()-1).posX = maoDestino.posInitX;
-            maoDestino.cartas.get(maoDestino.cartas.size()-1).posY = maoDestino.posInitY;
+            maoDestino.cartas.get(maoDestino.cartas.size()-1).posX = Math.rint(maoDestino.posInitX);
+            maoDestino.cartas.get(maoDestino.cartas.size()-1).posY = Math.rint(maoDestino.posInitY);
             maoDestino.posInitX += maoDestino.deltaX;
             pt.getChildren().add(
                 arrumaCarta(maoDestino.cartas.get(maoDestino.cartas.size()-1),true,tempo,true)    //e todas se movendo para o lugar correto
@@ -1486,7 +1495,7 @@ public class BuracoAberto extends Application {
                     mesa[ms].maos.add(new ClasseMao());
                     iMao = mesa[ms].maos.size()-1;
                     root.getChildren().add(mesa[ms].maos.get(iMao).tarja); //adiciona a tarja ao cenário, inicialmente invisível.
-                    Point2D pos = mesa[ms].posMao(iMao);
+                    Point2D pos = mesa[ms].posMao(iMao,larguraCarta());
                     mesa[ms].maos.get(iMao).setPosInit(pos.getX(), pos.getY(), 10, 0);
                 }
                 //transfere as novas cartas
@@ -1504,7 +1513,7 @@ public class BuracoAberto extends Application {
                     tl.getKeyFrames().add(new KeyFrame(Duration.millis(0),playLimpa));
                     tl.getKeyFrames().add(new KeyFrame(Duration.millis(2500),stopLimpa)); //1854
                     pt.getChildren().add(tl);
-                    pt.getChildren().add(mesa[ms].maos.get(iMao).fxMostraTarja("LIMPA"));
+                    pt.getChildren().add(mesa[ms].maos.get(iMao).fxMostraTarja("LIMPA",larguraCarta()));
                 }
                 else if (!eraSuja && mesa[ms].maos.get(iMao).suja()){
                     //fez uma suja!!!
@@ -1512,13 +1521,13 @@ public class BuracoAberto extends Application {
                     tl.getKeyFrames().add(new KeyFrame(Duration.millis(0.0),playSuja));
                     tl.getKeyFrames().add(new KeyFrame(Duration.millis(2000),stopSuja)); //1416
                     pt.getChildren().add(tl);
-                    pt.getChildren().add(mesa[ms].maos.get(iMao).fxMostraTarja("SUJA"));
+                    pt.getChildren().add(mesa[ms].maos.get(iMao).fxMostraTarja("SUJA",larguraCarta()));
                 }
                 else if (eraLimpa && mesa[ms].maos.get(iMao).limpa()){
-                    pt.getChildren().add(mesa[ms].maos.get(iMao).fxMoveTarja());
+                    pt.getChildren().add(mesa[ms].maos.get(iMao).fxMoveTarja(larguraCarta()));
                 }
                 else if (eraSuja && mesa[ms].maos.get(iMao).suja()){
-                    pt.getChildren().add(mesa[ms].maos.get(iMao).fxMoveTarja());
+                    pt.getChildren().add(mesa[ms].maos.get(iMao).fxMoveTarja(larguraCarta()));
                 }
                 jPlay = new SequentialTransition (jPlay,pt);
                 if (mao[j].cartas.isEmpty()){
@@ -1598,8 +1607,8 @@ public class BuracoAberto extends Application {
         ParallelTransition pt = new ParallelTransition();
         for (int k=0;k<maoDestino.cartas.size();k++){
             //Define a posição das cartas da mão para abrir espaço para a carta que vai entrar
-            maoDestino.cartas.get(k).posX = maoDestino.posInitX+maoDestino.deltaX*k;
-            maoDestino.cartas.get(k).posY = maoDestino.posInitY+maoDestino.deltaY*k;
+            maoDestino.cartas.get(k).posX = Math.rint(maoDestino.posInitX+maoDestino.deltaX*k);
+            maoDestino.cartas.get(k).posY = Math.rint(maoDestino.posInitY+maoDestino.deltaY*k);
             pt.getChildren().add(
                 arrumaCarta(maoDestino.cartas.get(k),true)    //e todas se movendo para o lugar correto
             );
@@ -1621,18 +1630,23 @@ public class BuracoAberto extends Application {
             resultado = "Perdemos!";
         }
         Region mensagem = new Region();
-        mensagem.setLayoutX(341);
-        mensagem.setLayoutY(192);
-        mensagem.setPrefSize(683,384);
+        mensagem.setLayoutX(smallRes?0:341);
+        mensagem.setLayoutY(smallRes?0:192);
+        mensagem.setPrefSize(smallRes?240:683,smallRes?320:384);
         mensagem.setStyle("-fx-background-color: #333333;-fx-background-radius: 5.0;");
         mensagem.setOpacity(0.5);
         Label texto = new Label();
         resultado = resultado + "\nNosso jogo: " + pt[0] + "\nJogo deles: " + pt[1];
-        texto.setStyle("-fx-text-fill: #FFFFFF; -fx-font-size: 20pt; -fx-opacity:0.8;");
+        if (smallRes){
+            texto.setStyle("-fx-text-fill: #FFFFFF; -fx-font-size: 8pt; -fx-opacity:0.8;");            
+        } else {
+            texto.setStyle("-fx-text-fill: #FFFFFF; -fx-font-size: 20pt; -fx-opacity:0.8;");            
+        }
+
         texto.setText(resultado);
-        texto.setLayoutX(500);
-        texto.setLayoutY(300);
-        texto.setPrefSize(400, 200);
+        texto.setLayoutX(smallRes?10:500);
+        texto.setLayoutY(smallRes?10:300);
+        texto.setPrefSize(smallRes?220:400,smallRes?300:200);
         
         root.getChildren().add(mensagem);
         root.getChildren().add(texto);
@@ -1929,4 +1943,62 @@ public class BuracoAberto extends Application {
             SUJA.stop();
         }
     };
+
+    private void inicializaControles() {
+        if (smallRes){
+            lixo.setLayoutX(50);
+            lixo.setLayoutY(120);
+            lixo.setPrefSize(180,50); 
+            mesadejogos.setLayoutX(10);
+            mesadejogos.setLayoutY(175);
+            mesadejogos.setPrefSize(220,105);
+            lblMesa1.setLayoutX(210.0);
+            lblMesa1.setLayoutY(0.0);
+            lblMesa2.setLayoutX(210.0);
+            lblMesa2.setLayoutY(300.0);
+            lblMesa1.setPrefSize(30,20);
+            lblMesa2.setPrefSize(30,20);
+        } else {
+            lixo.setLayoutX(683);
+            lixo.setLayoutY(276);
+            lixo.setPrefSize(400,100); 
+            mesadejogos.setLayoutX(283);
+            mesadejogos.setLayoutY(386);
+            mesadejogos.setPrefSize(800,210);
+            lblMesa1.setLayoutX(230.0);
+            lblMesa1.setLayoutY(386.0);
+            lblMesa2.setLayoutX(230.0);
+            lblMesa2.setLayoutY(56.0);
+            lblMesa1.setPrefSize(40,20);
+            lblMesa2.setPrefSize(40,20);
+        }
+        lixo.setOnMouseClicked(new EventHandler<MouseEvent>(){
+            @Override public void handle(MouseEvent event) {
+                event.consume();
+                lixo_click();
+            }
+        });
+        root.getChildren().add(lixo); //lixo zOrder 0
+        mesadejogos.setOnMouseClicked(new EventHandler<MouseEvent>(){
+            @Override public void handle(MouseEvent event) {
+                event.consume();
+                mesadejogos_click();
+            }
+        });
+        root.getChildren().add(mesadejogos); //mesa zOrder 1
+        for (int k=0;k<mao[MONTE].cartas.size();k++){
+            mao[MONTE].cartas.get(k).zOrder=k+2; //vai de 2 a 105
+            root.getChildren().add(mao[MONTE].cartas.get(k));
+        }
+        root.getChildren().add(lblMesa1);
+        root.getChildren().add(lblMesa2);
+    }
+    
+    public double larguraCarta() {
+        if (smallRes) return 35.0; else return 70.0;
+    }
+    
+    public double alturaCarta() {
+        if (smallRes) return 50.0; else return 100.0;
+    }
 }

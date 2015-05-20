@@ -346,7 +346,7 @@ public class ClasseMao {
         return k;
     }
     
-    public SequentialTransition fxMostraTarja(String tipo) {
+    public SequentialTransition fxMostraTarja(String tipo, double lgCarta) {
         if (null != tipo)switch (tipo) {
             case "LIMPA":
                 if (!this.tarja.getImage().equals(this.limpa)) this.tarja.setImage(this.limpa);
@@ -361,7 +361,7 @@ public class ClasseMao {
         tarja.setVisible(true);
         tarja.toFront();
         tarja.setMouseTransparent(true);
-        final double width = this.largura();
+        final double width = this.largura(lgCarta);
         TranslateTransition st = new TranslateTransition(); //dummy
         st.setNode(tarja);
         st.setDuration(Duration.seconds(TEMPO));
@@ -376,7 +376,7 @@ public class ClasseMao {
         return new SequentialTransition(st);
     }
     
-    public SequentialTransition fxMoveTarja() {
+    public SequentialTransition fxMoveTarja(double lgCarta) {
         if (this.tarja.isVisible()){
             TranslateTransition translate = new TranslateTransition(Duration.seconds(TEMPO));
             translate.setNode(this.tarja);
@@ -385,7 +385,7 @@ public class ClasseMao {
             TranslateTransition st = new TranslateTransition();
             st.setNode(tarja);
             st.setDuration(Duration.seconds(TEMPO));
-            final double w2 = this.largura();
+            final double w2 = this.largura(lgCarta);
             final double w1 = this.tarja.getViewport().getWidth();
             st.setInterpolator(new Interpolator(){   
                 @Override
@@ -440,9 +440,9 @@ public class ClasseMao {
         return retorno;
     }
     
-    public double largura() {
+    public double largura(double lgCarta) {
         double s = this.cartas.size();
-        return (s - 1) * this.deltaX + 70;
+        return (s - 1) * this.deltaX + lgCarta;
     }
     
     public void esvazia() {

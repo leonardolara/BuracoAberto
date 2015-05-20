@@ -80,11 +80,11 @@ public class ClasseCarta extends ImageView {
     public SequentialTransition fxToggleSelect() {
         this.selecionada = !this.selecionada;
         if (this.selecionada){
-            posY = posY - 10.0 * Math.cos(Math.toRadians(this.angulo));
-            posX = posX + 10.0 * Math.sin(Math.toRadians(this.angulo));
+            posY = posY - Math.rint(10.0 * Math.cos(Math.toRadians(this.angulo)));
+            posX = posX + Math.rint(10.0 * Math.sin(Math.toRadians(this.angulo)));
         } else {
-            posY = posY + 10.0 * Math.cos(Math.toRadians(this.angulo));
-            posX = posX - 10.0 * Math.sin(Math.toRadians(this.angulo));
+            posY = posY + Math.rint(10.0 * Math.cos(Math.toRadians(this.angulo)));
+            posX = posX - Math.rint(10.0 * Math.sin(Math.toRadians(this.angulo)));
         }
         /*
         if (this.angulo == 0){
@@ -131,11 +131,8 @@ public class ClasseCarta extends ImageView {
     }
     public SequentialTransition fxViraPraBaixo (Duration t) {
         if (t==Duration.ZERO) t=Duration.seconds(TEMPO);
-        Image imInicial;
         if (this.getImage().equals(frente)) {
-            imInicial=this.frente;
-            KeyFrame k1a, k1b, k2a, k2b, k3b;
-            //k1a = new KeyFrame(Duration.seconds(0),new KeyValue(this.imageProperty(),imInicial));
+            KeyFrame k1b, k2a, k2b, k3b;
             k1b = new KeyFrame(t.multiply(0.2),new KeyValue(this.scaleXProperty(),1.0));
             k2a = new KeyFrame(t.multiply(0.35),new KeyValue(this.imageProperty(),verso));
             k2b = new KeyFrame(t.multiply(0.35),new KeyValue(this.scaleXProperty(),0.0));
@@ -154,19 +151,14 @@ public class ClasseCarta extends ImageView {
     }
     public SequentialTransition fxViraPraCima (Duration t) {
         if (t==Duration.ZERO) t=Duration.seconds(TEMPO);
-        Image imInicial;
         if (this.getImage().equals(verso)) {
-            imInicial=this.verso;
-            KeyFrame k1a, k1b, k2a, k2b, k3a, k3b;
-            //k1a = new KeyFrame(Duration.seconds(0),new KeyValue(this.imageProperty(),imInicial));
+            KeyFrame k1b, k2a, k2b, k3b;
             k1b = new KeyFrame(t.multiply(0.2),new KeyValue(this.scaleXProperty(),1.0));
             k2a = new KeyFrame(t.multiply(0.35),new KeyValue(this.imageProperty(),frente));
             k2b = new KeyFrame(t.multiply(0.35),new KeyValue(this.scaleXProperty(),0.0));
-            //k3a = new KeyFrame(t.multiply(1.0),new KeyValue(this.imageProperty(),frente));
             k3b = new KeyFrame(t.multiply(0.6),new KeyValue(this.scaleXProperty(),1.0));
             Timeline timeline = new Timeline();
             timeline.getKeyFrames().addAll(k1b, k2a, k2b, k3b);
-            //t.getKeyFrames().addAll(k1a, k2a, k3a);
             return new SequentialTransition(new PauseTransition(Duration.millis(1)),timeline);
         }
         else {

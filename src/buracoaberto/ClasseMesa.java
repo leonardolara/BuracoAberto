@@ -35,20 +35,23 @@ public class ClasseMesa {
         this.deltaY = dY;
     }
     
-    public Point2D posMao (int mao_mesa) {
+    public Point2D posMao (int mao_mesa, double lgCarta) {
         Point2D pos = new Point2D(this.posInitX, this.posInitY);
         if ((mao_mesa >= this.maos.size())
             || (mao_mesa == 0)
             || this.maos.isEmpty()) {
             return pos;
         }
+        double espacoH = lgCarta * (2.0/7.0); //espaço horizontal entre os jogos da mesa
+        double altura = lgCarta * (10.0/7.0);
+        double espacoV = altura/10.0; //espaço vertical entre os jogos da mesa
         pos = new Point2D(
             this.maos.get(mao_mesa-1).posInitX
-                + this.maos.get(mao_mesa-1).largura()
-                + 20.0,
-            this.maos.get(mao_mesa-1).posInitY); //posição da mão anterior + largura + 20 = posição da mão atual
-        if (pos.getX() + this.maos.get(mao_mesa).largura() > this.posMax){ // se passar do limite, ajusta
-            pos = new Point2D(this.posInitX, pos.getY() + 110.0);
+                + this.maos.get(mao_mesa-1).largura(lgCarta)
+                + espacoH,
+            this.maos.get(mao_mesa-1).posInitY); //posição da mão anterior + largura + espaço = posição da mão atual
+        if (pos.getX() + this.maos.get(mao_mesa).largura(lgCarta) > this.posMax){ // se passar do limite, ajusta
+            pos = new Point2D(this.posInitX, pos.getY() + altura + espacoV);
         }
         return pos;
     }
